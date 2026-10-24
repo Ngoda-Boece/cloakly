@@ -1,25 +1,36 @@
 {
-  "name": "shield-ai",
+  "name": "cloakly",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && vite build --config vite.content.config.ts",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "icons": "node scripts/generate-icons.mjs",
+    "preview": "vite preview",
+    "eval:ai": "node --experimental-strip-types --import ./scripts/register-ts.mjs scripts/eval-ai.mjs",
+    "eval:pipeline": "node --experimental-strip-types --import ./scripts/register-ts.mjs scripts/eval-pipeline.mjs",
+    "eval:privacy": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/eval-privacy.mjs"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.3.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@types/chrome": "^0.3.6",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "jsdom": "^30.1.3",
     "oxlint": "^1.88.0",
     "typescript": "~6.0.3",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
   }
 }

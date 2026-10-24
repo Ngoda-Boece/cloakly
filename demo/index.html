@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloakly — page de démonstration</title>
+    <style>
+      body { max-width: 640px; margin: 40px auto; padding: 0 16px; font-family: system-ui, sans-serif; color: #17212b; }
+      #log { display: grid; gap: 8px; margin: 16px 0; }
+      #log div { padding: 10px 12px; border-radius: 10px; background: #e8f1f7; white-space: pre-wrap; }
+      form { display: flex; gap: 8px; align-items: flex-end; }
+      #editor { flex: 1; min-height: 60px; padding: 10px; border: 1px solid #c9d0d7; border-radius: 10px; }
+      #send { padding: 10px 16px; border: 0; border-radius: 10px; background: #163b55; color: #fff; }
+    </style>
+  </head>
+  <body>
+    <h1>Chat IA simulé</h1>
+    <p>Page locale pour tester l'intercepteur de Cloakly sans dépendre d'un vrai site. Lancer avec <code>npm run dev</code> puis ouvrir <code>/demo/</code>.</p>
+    <div id="log" aria-live="polite"></div>
+    <form onsubmit="return false">
+      <div id="editor" contenteditable="true" aria-label="Message"></div>
+      <button id="send" type="button">Envoyer</button>
+    </form>
+    <script type="module">
+      import { installInterceptor } from "../src/content/interceptor.ts";
+      import { DEFAULT_SETTINGS } from "../src/shared/settings.ts";
+      import { readEditorText } from "../src/content/editor.ts";
+
+      const editor = document.getElementById("editor");
+      const log = document.getElementById("log");
+      const send = () => {
+        const text = readEditorText(editor).trim();
+        if (!text) return;
+        log.appendChild(Object.assign(document.createElement("div"), { textContent: text }));
+        editor.textContent = "";
+      };
+      document.getElementById("send").addEventListener("click", send);
+      editor.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(); }
+      });
+
+      const settings = { ...DEFAULT_SETTINGS, customTerms: ["Projet Atlas"] };
+      const params = new URLSearchParams(location.search);
+      if (params.has("lax")) settings.strictMode = false;
+      installInterceptor({
+        doc: document,
+        site: { id: "demo", name: "Démo", hosts: [location.hostname], editorSelectors: ["#editor"], sendButtonSelectors: ["#send"] },
+        getSettings: () => settings,
+      });
+    </script>
+  </body>
+</html>
