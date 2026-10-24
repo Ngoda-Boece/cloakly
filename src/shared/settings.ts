@@ -9,6 +9,8 @@ export type AiSettings = {
   locations: boolean;
 };
 
+export type Theme = "light" | "dark";
+
 export type Settings = {
   enabled: boolean;
   strictMode: boolean;
@@ -17,6 +19,8 @@ export type Settings = {
   categories: CategoryId[];
   customTerms: string[];
   ai: AiSettings;
+  /** Thème du popup et des boîtes affichées sur les sites. */
+  theme: Theme;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -27,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   customTerms: [],
   // Désactivée tant que l'utilisateur n'a pas accepté le téléchargement des modèles.
   ai: { ner: false, llm: false, locations: false },
+  theme: "light",
 };
 
 const STORAGE_KEY = "settings";
@@ -60,6 +65,7 @@ export function normalizeSettings(raw: unknown): Settings {
       llm: flag(ai.llm, DEFAULT_SETTINGS.ai.llm),
       locations: flag(ai.locations, DEFAULT_SETTINGS.ai.locations),
     },
+    theme: value.theme === "dark" ? "dark" : DEFAULT_SETTINGS.theme,
   };
 }
 

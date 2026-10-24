@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, loadSettings, onSettingsChanged, type Settings } from
 import { findSiteForHost } from "../shared/sites";
 import { recordStats } from "../shared/stats";
 import { loadAliases, saveAliases } from "./aliasStore";
+import { applyTheme } from "./dialog";
 import { installInterceptor } from "./interceptor";
 import { createAliasPanel } from "./panel";
 
@@ -25,6 +26,7 @@ if (site) {
   loadSettings()
     .then((loaded) => {
       settings = loaded;
+      applyTheme(document, loaded.theme);
       warmUp(loaded);
     })
     .catch((error: unknown) => {
@@ -33,6 +35,7 @@ if (site) {
 
   onSettingsChanged((next) => {
     settings = next;
+    applyTheme(document, next.theme);
     warmUp(next);
   });
 

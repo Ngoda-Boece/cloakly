@@ -1,12 +1,81 @@
 
 :root {
+  --bg: #ffffff;
+  --page: #f2f5f7;
+  --surface: #f2f5f7;
+  --elevated: #ffffff;
+  --brand: #2b2d6e;
+  --brand-hover: #1f2056;
+  --brand-ink: #2b2d6e;
+  --brand-soft: #eef0fb;
+  --brand-soft-hover: #dcdff5;
+  --ok: #18794e;
+  --ok-soft: #e3f4ea;
+  --warn: #755317;
+  --warn-soft: #fff3dc;
+  --warn-badge: #f0d9a8;
+  --ko: #b42318;
+  --ko-soft: #fef3f2;
+  --ko-line: #f4b8b0;
+  --verdict-high-bg: #fef3f2;
+  --verdict-high-text: #8a1c12;
+  --verdict-medium-bg: #fff7e6;
+  --verdict-medium-text: #7a4a00;
+  --text: #17212b;
+  --text-2: #4d5b67;
+  --muted: #697784;
+  --muted-2: #87919b;
+  --line: #e1e7ec;
+  --line-soft: #edf0f2;
+  --line-strong: #aeb8c2;
+  --control: #c9d0d7;
+  --focus: #8abcf5;
+  --shadow: #00000018;
+
+  color-scheme: light;
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #17212b;
-  background: #f2f5f7;
+  color: var(--text);
+  background: var(--page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Thème sombre : neutres bleu-nuit dérivés de l'indigo de la marque. */
+:root[data-theme="dark"] {
+  --bg: #151827;
+  --page: #0f1220;
+  --surface: #1d2133;
+  --elevated: #272c44;
+  --brand: #5b5fd6;
+  --brand-hover: #6c70e0;
+  --brand-ink: #a5a8ff;
+  --brand-soft: #23264a;
+  --brand-soft-hover: #2e3260;
+  --ok: #4cc38a;
+  --ok-soft: #143524;
+  --warn: #e0b354;
+  --warn-soft: #3a2d12;
+  --warn-badge: #4a3a17;
+  --ko: #f97066;
+  --ko-soft: #3a1714;
+  --ko-line: #7a271a;
+  --verdict-high-bg: #3a1714;
+  --verdict-high-text: #fda29b;
+  --verdict-medium-bg: #36290f;
+  --verdict-medium-text: #f5c26b;
+  --text: #e6e9f2;
+  --text-2: #b4bccb;
+  --muted: #9aa3b5;
+  --muted-2: #7c8598;
+  --line: #2c3148;
+  --line-soft: #232739;
+  --line-strong: #4a5068;
+  --control: #3a4058;
+  --shadow: #00000060;
+
+  color-scheme: dark;
 }
 
 * {
@@ -16,6 +85,7 @@
 body {
   min-width: 320px;
   margin: 0;
+  background: var(--page);
 }
 
 button,

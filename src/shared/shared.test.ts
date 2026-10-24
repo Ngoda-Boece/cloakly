@@ -38,6 +38,7 @@ describe("normalizeSettings", () => {
         categories: ["secrets", "inconnue", 3],
         customTerms: [" Atlas ", "Atlas", "x", 42, "Client Durand"],
         ai: { ner: true, llm: "oui" },
+        theme: "violet",
       })
     ).toEqual({
       enabled: false,
@@ -46,7 +47,12 @@ describe("normalizeSettings", () => {
       categories: ["secrets"],
       customTerms: ["Atlas", "Client Durand"],
       ai: { ner: true, llm: false, locations: false },
+      theme: "light",
     });
+  });
+
+  it("conserve le thème sombre choisi", () => {
+    expect(normalizeSettings({ theme: "dark" }).theme).toBe("dark");
   });
 
   it("garde l'IA désactivée par défaut (téléchargement soumis à consentement)", () => {
