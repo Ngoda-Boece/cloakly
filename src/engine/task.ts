@@ -91,7 +91,7 @@ const TASK_KEYWORDS: Record<TaskKind, string[]> = {
   complaint: ["reclamation", "rembours", "litige", "plainte", "pas recu", "jamais recu", "defectueux", "complaint", "refund", "never received", "damaged", "retard", "sav"],
 };
 
-const SENSITIVE_KEYWORDS: Record<SensitiveContext, string[]> = {
+export const SENSITIVE_KEYWORDS: Record<SensitiveContext, string[]> = {
   health: TASK_KEYWORDS.medical,
   finance: ["salaire", "dette", "credit", "decouvert", "surendettement", "revenu", "salary", "debt", "overdraft", "bankrupt"],
   children: ["mon fils", "ma fille", "mes enfants", "mon enfant", "bebe", "eleve", "mineur", "my son", "my daughter", "my child", "my kid", "ecole", "creche"],

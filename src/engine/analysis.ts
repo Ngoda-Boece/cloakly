@@ -10,7 +10,8 @@ import {
 } from "./detect";
 import { fold } from "./context";
 import type { ContextVerdict } from "./llmPrompt";
-import { analyzeTask, protectedParameters, type TaskProfile } from "./task";
+import { isCommonCapitalized, isKnownFirstName } from "./names";
+import { analyzeTask, protectedParameters, SENSITIVE_KEYWORDS, type TaskProfile } from "./task";
 
 export type AnalysisSettings = {
   categories: readonly CategoryId[];
@@ -158,6 +159,40 @@ function withoutTaskParameters(excerpt: SensitiveEntity, task: TaskProfile): Sen
   return subtractCovered(excerpt, parameters);
 }
 
+/** Sujets confidentiels par nature, même sans nom ni chiffre (préfixes repliés). */
+const CONFIDENTIAL_TOPICS = [
+  ...SENSITIVE_KEYWORDS.health,
+  ...SENSITIVE_KEYWORDS.children,
+  ...SENSITIVE_KEYWORDS.intimate,
+  ...SENSITIVE_KEYWORDS.legal,
+  "rachat", "fusion", "acquisition", "cession", "licenci", "plan social", "suppression", "fermeture", "restructur",
+  "confidenti", "non publi", "non annonc", "embargo", "poursuivi", "fraude", "salaire", "merger", "layoff", "closure",
+  "lawsuit", "salary", "unannounced",
+];
+
+/**
+ * Un extrait de contexte (IA) n'est masqué que s'il porte un fait précis : un
+ * chiffre, un nom propre, un prénom (même en minuscules), un identifiant
+ * (« jean.dupont », « [at] ») ou un sujet confidentiel par nature. Le mini-LLM
+ * cite volontiers des libellés génériques (« numéro client », « crédit auto »,
+ * « enverra le contrat depuis ») : les masquer ne protège rien et rend la
+ * demande incompréhensible.
+ */
+function carriesSpecificFact(excerpt: SensitiveEntity, text: string): boolean {
+  if (/\d/.test(excerpt.value) || /\[(?:at|point|dot)\]|\p{L}[.@_]\p{L}/iu.test(excerpt.value)) return true;
+  const folded = ` ${fold(excerpt.value).replace(/[^\p{L}\s']+/gu, " ")} `;
+  if (CONFIDENTIAL_TOPICS.some((topic) => folded.includes(` ${topic}`))) return true;
+  for (const match of excerpt.value.matchAll(/\p{L}[\p{L}\p{M}'’-]*/gu)) {
+    const word = match[0];
+    if (isKnownFirstName(word)) return true;
+    const before = text.slice(0, excerpt.start + match.index).trimEnd();
+    const sentenceStart = before === "" || /[.!?:\n«"“]$/u.test(before);
+    // Nom propre : majuscule hors début de phrase ; un sigle court (URL, API) n'en est pas un.
+    if (/^\p{Lu}/u.test(word) && !sentenceStart && !isCommonCapitalized(word) && !/^\p{Lu}{2,4}$/u.test(word)) return true;
+  }
+  return false;
+}
+
 export const LEARNED_REASON = "appris de vos corrections";
 
 /**
@@ -196,8 +231,16 @@ function analyzeWithoutLearning(
   const task = analyzeTask(text);
   const classified = classifySensitiveData(text, settings);
   const rules = classified.filter((entity) => entity.decision !== "keep");
+  // Ce que les règles ont examiné puis gardé (personnalité publique, n° de commande, IP
+  // privée…) le reste : le NER et le mini-LLM ne voient pas pourquoi c'est utile à la tâche.
+  const keptByRules = classified.filter((entity) => entity.decision === "keep");
+  const overlapsKept = (entity: SensitiveEntity) =>
+    keptByRules.some((kept) => entity.start < kept.end && kept.start < entity.end);
   const ner = (findings?.ner ?? []).filter(
-    (entity) => allowed.has(ENTITY_CATEGORY[entity.type]) && text.slice(entity.start, entity.end) === entity.value
+    (entity) =>
+      allowed.has(ENTITY_CATEGORY[entity.type]) &&
+      text.slice(entity.start, entity.end) === entity.value &&
+      !overlapsKept(entity)
   );
   const base = mergeEntities([...rules, ...rememberedEntities(text, aliases, settings), ...ner]);
   const keptCandidates = (masked: SensitiveEntity[]) =>
@@ -222,8 +265,9 @@ function analyzeWithoutLearning(
   const entities = mergeEntities([
     ...base,
     ...excerpts
-      .flatMap((excerpt) => subtractCovered(excerpt, base))
-      .flatMap((excerpt) => withoutTaskParameters(excerpt, task)),
+      .flatMap((excerpt) => subtractCovered(excerpt, [...base, ...keptByRules]))
+      .flatMap((excerpt) => withoutTaskParameters(excerpt, task))
+      .filter((excerpt) => carriesSpecificFact(excerpt, text)),
   ]);
   return { entities, kept: keptCandidates(entities), task };
 }

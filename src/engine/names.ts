@@ -82,6 +82,16 @@ const KNOWLEDGE_CUES = [
   "lycee", "college", "ecole", "universite", "hopital", "prix", "president", "roi", "reine", "empereur",
 ];
 
+/** Prénom courant, quelle que soit la casse (« fatou » comme « Fatou »). */
+export function isKnownFirstName(word: string): boolean {
+  return FIRST_NAMES.has(fold(word).split(/[-'’]/)[0]);
+}
+
+/** Mot qui prend une majuscule sans désigner quelqu'un (jour, produit, formule…). */
+export function isCommonCapitalized(word: string): boolean {
+  return NOT_NAMES.has(fold(word));
+}
+
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combineDetections, needsContextAnalysis, type AiFindings } from "./analysis";
+import { analyzeMessage, combineDetections, needsContextAnalysis, type AiFindings } from "./analysis";
 import { anonymizeText, createAliasRegistry, restoreText, serializeRegistry } from "./anonymize";
 import type { SensitiveEntity } from "./detect";
 import { alignExcerpt, buildMessages, parseVerdict } from "./llmPrompt";
@@ -216,6 +216,35 @@ describe("combineDetections", () => {
       findings({ verdict: { risk: "high", reason: "", excerpts: [{ value, start, end: start + value.length }] } })
     );
     expect(entities.map((e) => e.value)).toEqual([value]);
+  });
+
+  it("ne masque pas un extrait de contexte générique, sans fait précis", () => {
+    const text = "Le bailleur réclame mon numéro allocataire et la copie du bail, écris une réponse polie qui refuse.";
+    const at = (value: string) => ({ value, start: text.indexOf(value), end: text.indexOf(value) + value.length });
+    const excerpts = [at("numéro allocataire"), at("la copie du bail"), at("réponse polie")];
+    expect(combineDetections(text, ALL, findings({ verdict: { risk: "medium", reason: "", excerpts } }))).toEqual([]);
+  });
+
+  it.each([
+    ["Résume : le rachat de Talvern reste secret, Hugo prévient les équipes.", "rachat de Talvern"],
+    ["Reformule : la direction prépare le licenciement de deux cadres du service achats.", "licenciement de deux cadres"],
+    ["mets en forme : réunion avec nadia benali demain sur le budget.", "nadia benali"],
+    ["Écris à paul.roux [at] exemple [point] fr pour confirmer la livraison.", "paul.roux [at] exemple [point] fr"],
+    ["Traduis : nous fermons 3 agences avant l'été, n'en parle à personne.", "nous fermons 3 agences"],
+  ])("masque un extrait de contexte qui porte un fait précis (%s)", (text, value) => {
+    const start = text.indexOf(value);
+    const verdict = { risk: "high" as const, reason: "", excerpts: [{ value, start, end: start + value.length }] };
+    expect(combineDetections(text, ALL, findings({ verdict })).map((e) => e.value)).toContain(value);
+  });
+
+  it("laisse gardé ce que les règles ont choisi de garder, malgré le NER et le contexte", () => {
+    const text = "Raconte la vie de Marie Curie, puis relance le colis de la commande n° 77120934 arrivé abîmé.";
+    const at = (value: string) => ({ value, start: text.indexOf(value), end: text.indexOf(value) + value.length });
+    const ner: SensitiveEntity[] = [{ type: "PERSON", ...at("Marie Curie"), source: "ner" }];
+    const excerpts = [at("commande n° 77120934")];
+    const analysis = analyzeMessage(text, ALL, findings({ ner, verdict: { risk: "medium", reason: "", excerpts } }));
+    expect(analysis.entities).toEqual([]);
+    expect(analysis.kept.map((entity) => entity.value)).toEqual(expect.arrayContaining(["Marie Curie", "77120934"]));
   });
 
   it("respecte les catégories désactivées", () => {
