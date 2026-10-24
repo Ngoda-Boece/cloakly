@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Sorties temporaires de la boucle d'amélioration
+tmp

@@ -3,10 +3,14 @@
 //         npm run eval:privacy -- --level maximum
 //         npm run eval:privacy -- --engine <dossier>  (autre version du moteur, pour comparer)
 //         npm run eval:privacy -- --set holdout      (jeu de contrôle, jamais utilisé pour régler le moteur)
+//         npm run eval:privacy -- --set generated --seed 42 --count 99  (cas synthétiques inédits)
+//         npm run eval:privacy -- --failures tmp/failures.json        (écarts groupés par catégorie)
 //         npm run eval:privacy -- --json             (sortie machine)
-import { resolve } from "node:path";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { CORPUS } from "../src/engine/eval/corpus.ts";
+import { generateCases } from "../src/engine/eval/generator.ts";
 import { HOLDOUT } from "../src/engine/eval/holdout.ts";
 import { evaluate, formatReport } from "../src/engine/eval/metrics.ts";
 
@@ -19,7 +23,17 @@ const option = (name) => {
 const engineDir = resolve(option("--engine") ?? "src/engine");
 const level = option("--level") ?? "balanced";
 const set = option("--set") ?? "reference";
-const cases = set === "holdout" ? HOLDOUT : set === "all" ? [...CORPUS, ...HOLDOUT] : CORPUS;
+const seed = Number(option("--seed") ?? 1);
+const count = option("--count") ? Number(option("--count")) : undefined;
+const SETS = {
+  reference: () => CORPUS,
+  holdout: () => HOLDOUT,
+  generated: () => generateCases(seed, count),
+  all: () => [...CORPUS, ...HOLDOUT],
+};
+if (!SETS[set]) throw new Error(`Jeu inconnu : ${set} (${Object.keys(SETS).join(", ")})`);
+const cases = SETS[set]();
+const setLabel = set === "generated" ? `generated (graine ${seed})` : set;
 const load = (file) => import(pathToFileURL(resolve(engineDir, file)).href);
 
 const analysis = await load("analysis.ts");
@@ -55,9 +69,23 @@ function engine(text) {
 for (const item of cases.slice(0, 5)) engine(item.text);
 const metrics = evaluate(cases, engine);
 
+const failuresFile = option("--failures");
+if (failuresFile) {
+  // Écarts seulement, avec le texte du cas : de quoi diagnostiquer sans relancer l'évaluation.
+  const texts = new Map(cases.map((item) => [item.id, item.text]));
+  const failures = {};
+  for (const result of metrics.results) {
+    if (!(result.leaks.length || result.falsePositives.length || result.lostParameters.length || result.lostIntent.length)) continue;
+    const { latencyMs: _latency, incomprehensible: _incomprehensible, ...detail } = result;
+    (failures[result.category] ??= []).push({ ...detail, text: texts.get(result.id) });
+  }
+  mkdirSync(dirname(resolve(failuresFile)), { recursive: true });
+  writeFileSync(resolve(failuresFile), JSON.stringify({ set: setLabel, level, failures }, null, 2));
+}
+
 if (args.includes("--json")) {
   const { results: _results, ...summary } = metrics;
   console.log(JSON.stringify(summary, null, 2));
 } else {
-  console.log(formatReport(metrics, `Moteur ${option("--engine") ? engineDir : "actuel"} · niveau ${level} · jeu ${set}`));
+  console.log(formatReport(metrics, `Moteur ${option("--engine") ? engineDir : "actuel"} · niveau ${level} · jeu ${setLabel}`));
 }
