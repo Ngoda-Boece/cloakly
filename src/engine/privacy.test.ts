@@ -70,6 +70,14 @@ describe("noms de personnes (sans modèle)", () => {
     expect(masked("Explique-moi la différence entre TCP et UDP.")).toEqual([]);
   });
 
+  it("repère un nom tapé en minuscules, sans prendre les prénoms ambigus ou les verbes", () => {
+    expect(masked("prépare une lettre pour sarah benoit avant vendredi")).toEqual(["PERSON:sarah benoit"]);
+    expect(masked("mon fils hugo est malade, que faire ?")).toEqual(["PERSON:hugo"]);
+    expect(masked("la pierre de l'olivier est claire")).toEqual([]);
+    // Avec des majuscules, la casse reste un indice : pas de recherche en minuscules.
+    expect(masked("Explique la recette de la tarte de julie.")).toEqual([]);
+  });
+
   it("ne prend pas un sigle placé avant un prénom pour un nom de famille", () => {
     expect(masked("Notre DRH Sophie a validé, le CEO Marc aussi.")).toEqual(["PERSON:Sophie", "PERSON:Marc"]);
   });

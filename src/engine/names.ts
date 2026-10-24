@@ -286,7 +286,58 @@ export function detectPersons(text: string, options: { strictPublicFigures?: boo
     }
   }
 
+  if (!/\p{Lu}/u.test(text)) found.push(...lowercasePersons(text, found));
+
   return withOtherOccurrences(text, found);
+}
+
+/** Prénoms qui sont aussi des mots courants : sans majuscule, impossible de trancher. */
+const LOWERCASE_AMBIGUOUS = new Set(["pierre", "olivier", "claire", "marc", "jean", "amine", "nancy", "martin"]);
+
+/** Mots qui suivent un prénom sans être un nom de famille : « lucas est malade », « pour ines demain ». */
+const NOT_SURNAMES = new Set(
+  (
+    "qui que quoi et ou est a va vient etait sera sont ont avait doit peut veut fait dit ne n pas le la les un une " +
+    "de du des au aux en dans sur pour par avec sans chez mais donc car si se sa son ses ce cette demain hier " +
+    "aujourd ce soir matin lundi mardi mercredi jeudi vendredi samedi dimanche aussi encore deja tres bien merci " +
+    "and is was has will can the to of in on at for with"
+  ).split(" ")
+);
+
+/**
+ * Message tapé tout en minuscules (« écris un mot pour fatou renaud ») : les
+ * indices de casse manquent, on se fie aux prénoms connus non ambigus, suivis
+ * éventuellement d'un nom.
+ */
+function lowercasePersons(text: string, found: readonly Candidate[]): Candidate[] {
+  const result: Candidate[] = [];
+  const word = /(?<![\p{L}\p{N}_@.])(\p{Ll}[\p{Ll}\p{M}]+(?:[-'’]\p{Ll}[\p{Ll}\p{M}]+)?)(?![\p{L}\p{N}_@])/gu;
+  const words = [...text.matchAll(word)];
+
+  for (let index = 0; index < words.length; index += 1) {
+    const first = words[index];
+    const folded = fold(first[1]);
+    if (!FIRST_NAMES.has(folded.split(/[-'’]/)[0]) || LOWERCASE_AMBIGUOUS.has(folded)) continue;
+    const start = first.index;
+    if (found.some((other) => start < other.end && other.start < start + first[1].length)) continue;
+
+    const next = words[index + 1];
+    const adjacent = next && /^[ \t]+$/.test(text.slice(start + first[1].length, next.index));
+    const surname = adjacent && next[1].length >= 3 && !NOT_SURNAMES.has(fold(next[1])) && !NOT_NAMES.has(fold(next[1]));
+    const end = surname ? next.index + next[1].length : start + first[1].length;
+    result.push({
+      type: "PERSON",
+      value: text.slice(start, end),
+      start,
+      end,
+      score: surname ? 0.7 : 0.55,
+      reason: surname ? "prénom et nom (minuscules)" : "prénom (minuscules)",
+      source: "rules",
+      decision: precededByKnowledgeCue(text, start) ? "keep" : "mask",
+    });
+    if (surname) index += 1;
+  }
+  return result;
 }
 
 /**
