@@ -157,13 +157,21 @@ const CUES: Cue[] = [
     reason: "lien avec une personne",
   },
   {
-    regex: new RegExp(`(?:^|[\\n.!?]\\s*)(?:${GREETINGS})\\s+(${NAME})(?=\\s*[,!\\n:]|\\s*$)`, "gu"),
+    // Aussi dans un message cité : « Traduis : « Bonjour Maëlle, … » ».
+    regex: new RegExp(`(?:^|[\\n.!?:«"“]\\s*)(?:${GREETINGS})\\s+(${NAME})(?=\\s*[,!\\n:]|\\s*$)`, "gu"),
     score: 0.75,
     reason: "salutation",
     strict: true,
   },
   {
     regex: new RegExp(`(?:${SIGNOFFS})\\s*[,.!]?[ \\t]*\\n+[ \\t]*(${NAME})[ \\t]*(?=\\n|$)`, "gu"),
+    score: 0.85,
+    reason: "signature",
+    strict: true,
+  },
+  {
+    // Signature sur la même ligne, en fin de message cité : « … Cordialement, Clémence Hamon ».
+    regex: new RegExp(`(?<![\\p{L}])(?:${SIGNOFFS})\\s*,[ \\t]*(${NAME})[ \\t]*(?=[»"”])`, "gu"),
     score: 0.85,
     reason: "signature",
     strict: true,

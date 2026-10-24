@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-24T19:31:58.032Z",
+  "level": "balanced",
+  "seeds": [
+    1,
+    2,
+    3,
+    20261024
+  ],
+  "metrics": {
+    "reference": {
+      "cases": 74,
+      "leaks": 0,
+      "secretsTransmitted": 0,
+      "recall": 1,
+      "precision": 1,
+      "cleanPromptsAltered": 0,
+      "parameterPreservation": 1,
+      "intentPreservation": 1,
+      "incomprehensibleRate": 0,
+      "p95Ms": 6.9
+    },
+    "holdout": {
+      "cases": 26,
+      "leaks": 0,
+      "secretsTransmitted": 0,
+      "recall": 1,
+      "precision": 0.9545454545454546,
+      "cleanPromptsAltered": 0.125,
+      "parameterPreservation": 0.975609756097561,
+      "intentPreservation": 1,
+      "incomprehensibleRate": 0,
+      "p95Ms": 4.3
+    },
+    "generated:1": {
+      "cases": 96,
+      "leaks": 0,
+      "secretsTransmitted": 0,
+      "recall": 1,
+      "precision": 0.9767441860465116,
+      "cleanPromptsAltered": 0.07407407407407407,
+      "parameterPreservation": 0.9851851851851852,
+      "intentPreservation": 1,
+      "incomprehensibleRate": 0,
+      "p95Ms": 5.08
+    },
+    "generated:2": {
+      "cases": 96,
+      "leaks": 1,
+      "secretsTransmitted": 0,
+      "recall": 0.9876543209876543,
+      "precision": 1,
+      "cleanPromptsAltered": 0,
+      "parameterPreservation": 1,
+      "intentPreservation": 1,
+      "incomprehensibleRate": 0,
+      "p95Ms": 4.68
+    },
+    "generated:3": {
+      "cases": 96,
+      "leaks": 2,
+      "secretsTransmitted": 0,
+      "recall": 0.9753086419753086,
+      "precision": 0.9876543209876543,
+      "cleanPromptsAltered": 0.037037037037037035,
+      "parameterPreservation": 0.9925925925925926,
+      "intentPreservation": 1,
+      "incomprehensibleRate": 0,
+      "p95Ms": 4.35
+    },
+    "generated:20261024": {
+      "cases": 96,
+      "leaks": 0,
+      "secretsTransmitted": 0,
+      "recall": 1,
+      "precision": 1,
+      "cleanPromptsAltered": 0,
+      "parameterPreservation": 1,
+      "intentPreservation": 1,
+      "incomprehensibleRate": 0,
+      "p95Ms": 4.52
+    }
+  }
+}
