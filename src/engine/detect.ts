@@ -442,7 +442,8 @@ const STRUCTURED_PATTERNS: Pattern[] = [
   },
   {
     type: "IBAN",
-    regex: /\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){2,7}(?: ?[A-Z0-9]{1,4})?\b/g,
+    // Casse indifférente (« fr76 3000 … ») : la clé de contrôle écarte les faux positifs.
+    regex: /\b[A-Za-z]{2}\d{2}(?: ?[A-Za-z0-9]{4}){2,7}(?: ?[A-Za-z0-9]{1,4})?\b/g,
     classify: (value, context) => {
       const valid = validateIban(value);
       if (valid) return { value: valid, score: 0.99, reason: "IBAN (clé de contrôle valide)" };

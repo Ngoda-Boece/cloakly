@@ -176,6 +176,22 @@ export const CORPUS: CorpusCase[] = [
     intent: ["comment le changer"],
   },
   {
+    id: "bank-iban-lowercase",
+    category: "bancaire",
+    text: "voici mon rib pour le remboursement : fr97 3002 7179 0200 0123 4567 811, merci de faire le virement de 75 €.",
+    mask: [direct("fr97 3002 7179 0200 0123 4567 811")],
+    keep: ["75 €"],
+    intent: ["merci de faire le virement"],
+  },
+  {
+    id: "bank-iban-lowercase-compact",
+    category: "bancaire",
+    text: "Can you check this German account de44500105175407324931 for a typo before I send the invoice?",
+    mask: [direct("de44500105175407324931")],
+    keep: [],
+    intent: ["check this German account"],
+  },
+  {
     id: "secret-has-password",
     category: "secrets",
     text: "Le routeur du bureau a pour mot de passe Brume!73k depuis l'installation, comment activer le WPA3 ?",
