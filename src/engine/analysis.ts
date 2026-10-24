@@ -3,10 +3,12 @@ import {
   classifySensitiveData,
   ENTITY_CATEGORY,
   mergeEntities,
+  SECRET_TYPES,
   type CategoryId,
   type PrivacyLevel,
   type SensitiveEntity,
 } from "./detect";
+import { fold } from "./context";
 import type { ContextVerdict } from "./llmPrompt";
 import { analyzeTask, protectedParameters, type TaskProfile } from "./task";
 
@@ -14,6 +16,8 @@ export type AnalysisSettings = {
   categories: readonly CategoryId[];
   customTerms: readonly string[];
   level?: PrivacyLevel;
+  /** Valeurs que l'utilisateur a décochées plusieurs fois : proposées décochées (jamais un secret, ignorées en niveau maximal). */
+  allowTerms?: readonly string[];
 };
 
 /** Résultat brut des modèles IA, tel que renvoyé par le document offscreen. */
@@ -154,7 +158,35 @@ function withoutTaskParameters(excerpt: SensitiveEntity, task: TaskProfile): Sen
   return subtractCovered(excerpt, parameters);
 }
 
+export const LEARNED_REASON = "appris de vos corrections";
+
+/**
+ * Passe en « conservé » les détections que l'utilisateur a appris à Cloakly à garder.
+ * Elles restent visibles (décochées) dans la revue : rien n'est retiré en silence.
+ */
+function applyAllowTerms(analysis: MessageAnalysis, settings: AnalysisSettings): MessageAnalysis {
+  if (!settings.allowTerms?.length || settings.level === "maximum") return analysis;
+  const allowed = new Set(settings.allowTerms.map((term) => fold(term.trim())));
+  const learned = (entity: SensitiveEntity) => !SECRET_TYPES.has(entity.type) && allowed.has(fold(entity.value.trim()));
+  if (!analysis.entities.some(learned)) return analysis;
+  const moved = analysis.entities.filter(learned).map((entity) => ({ ...entity, decision: "keep" as const, reason: LEARNED_REASON }));
+  return {
+    ...analysis,
+    entities: analysis.entities.filter((entity) => !learned(entity)),
+    kept: [...analysis.kept, ...moved].sort((a, b) => a.start - b.start),
+  };
+}
+
 export function analyzeMessage(
+  text: string,
+  settings: AnalysisSettings,
+  findings: AiFindings | null,
+  aliases?: AliasRegistry
+): MessageAnalysis {
+  return applyAllowTerms(analyzeWithoutLearning(text, settings, findings, aliases), settings);
+}
+
+function analyzeWithoutLearning(
   text: string,
   settings: AnalysisSettings,
   findings: AiFindings | null,

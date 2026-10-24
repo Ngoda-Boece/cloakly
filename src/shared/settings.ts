@@ -18,6 +18,10 @@ export type Settings = {
   privacyLevel: PrivacyLevel;
   categories: CategoryId[];
   customTerms: string[];
+  /** Valeurs apprises des corrections : proposées décochées dans la revue (jamais un secret). */
+  allowTerms: string[];
+  /** Apprendre des cases cochées ou décochées dans la revue (stocké sur cet appareil uniquement). */
+  learning: boolean;
   ai: AiSettings;
   /** Thème du popup et des boîtes affichées sur les sites. */
   theme: Theme;
@@ -29,12 +33,27 @@ export const DEFAULT_SETTINGS: Settings = {
   privacyLevel: "balanced",
   categories: [...ALL_CATEGORIES],
   customTerms: [],
+  allowTerms: [],
+  learning: true,
   // Désactivée tant que l'utilisateur n'a pas accepté le téléchargement des modèles.
   ai: { ner: false, llm: false, locations: false },
   theme: "light",
 };
 
 const STORAGE_KEY = "settings";
+
+/** Liste de termes dédoublonnée, sans espaces superflus ni termes trop courts. */
+function normalizeTerms(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return [
+    ...new Set(
+      raw
+        .filter((term): term is string => typeof term === "string")
+        .map((term) => term.trim())
+        .filter((term) => term.length >= 2)
+    ),
+  ];
+}
 
 /** Valide des réglages venant du stockage ; toute valeur invalide reprend sa valeur par défaut. */
 export function normalizeSettings(raw: unknown): Settings {
@@ -50,16 +69,9 @@ export function normalizeSettings(raw: unknown): Settings {
     categories: Array.isArray(value.categories)
       ? ALL_CATEGORIES.filter((category) => (value.categories as unknown[]).includes(category))
       : [...DEFAULT_SETTINGS.categories],
-    customTerms: Array.isArray(value.customTerms)
-      ? [
-          ...new Set(
-            value.customTerms
-              .filter((term): term is string => typeof term === "string")
-              .map((term) => term.trim())
-              .filter((term) => term.length >= 2)
-          ),
-        ]
-      : [],
+    customTerms: normalizeTerms(value.customTerms),
+    allowTerms: normalizeTerms(value.allowTerms),
+    learning: flag(value.learning, DEFAULT_SETTINGS.learning),
     ai: {
       ner: flag(ai.ner, DEFAULT_SETTINGS.ai.ner),
       llm: flag(ai.llm, DEFAULT_SETTINGS.ai.llm),

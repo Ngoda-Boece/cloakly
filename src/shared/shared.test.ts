@@ -46,6 +46,8 @@ describe("normalizeSettings", () => {
       privacyLevel: "balanced",
       categories: ["secrets"],
       customTerms: ["Atlas", "Client Durand"],
+      allowTerms: [],
+      learning: true,
       ai: { ner: true, llm: false, locations: false },
       theme: "light",
     });

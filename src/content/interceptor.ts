@@ -10,6 +10,7 @@ import type { SensitiveEntity } from "../engine/detect";
 import type { ContextVerdict } from "../engine/llmPrompt";
 import { expandOccurrences, protect, validateTransformation, verifyEditorContent } from "../engine/protect";
 import type { TaskProfile } from "../engine/task";
+import { findCorrections, type Correction } from "../shared/learning";
 import type { Settings } from "../shared/settings";
 import type { SupportedSite } from "../shared/sites";
 import type { Stats } from "../shared/stats";
@@ -32,6 +33,8 @@ export type InterceptorOptions = {
   /** Appelé quand de nouveaux alias ont été attribués (persistance, panneau). */
   onAliasesChanged?: (aliases: AliasRegistry) => void;
   onStats?: (delta: Partial<Stats>) => void;
+  /** Cases cochées ou décochées par rapport à la proposition, après un envoi protégé réussi. */
+  onCorrections?: (corrections: Correction[]) => void;
   /** Délai maximal d'attente de la réactivation du bouton d'envoi. */
   sendTimeoutMs?: number;
   /** Délai maximal d'une analyse IA (chargement du modèle compris). */
@@ -50,7 +53,12 @@ const STRICT_BLOCK_TITLE = "Envoi bloqué";
 const NON_STRICT_TITLE = "Protection impossible";
 
 function analysisSettings(settings: Settings): AnalysisSettings {
-  return { categories: settings.categories, customTerms: settings.customTerms, level: settings.privacyLevel };
+  return {
+    categories: settings.categories,
+    customTerms: settings.customTerms,
+    level: settings.privacyLevel,
+    allowTerms: settings.learning ? settings.allowTerms : [],
+  };
 }
 
 export function aiKindsFor(settings: Settings, text: string) {
@@ -260,6 +268,8 @@ export function installInterceptor(options: InterceptorOptions): () => void {
     await resubmit(editor);
     const count = new Set(protection.replacements.map((item) => item.alias)).size;
     stats({ protected: 1, masked: protection.replacements.length });
+    const corrections = findCorrections(analysis, selected);
+    if (corrections.length && settings.learning) options.onCorrections?.(corrections);
     showToast(
       doc,
       `Message protégé : ${count} donnée${count > 1 ? "s" : ""} sensible${count > 1 ? "s" : ""} remplacée${count > 1 ? "s" : ""} avant l'envoi.`,

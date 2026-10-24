@@ -1,6 +1,7 @@
 import { analyzeWithAi, loadModels } from "../ai/client";
 import { createAliasRegistry } from "../engine/anonymize";
 import { DEFAULT_SETTINGS, loadSettings, onSettingsChanged, type Settings } from "../shared/settings";
+import { recordCorrections } from "../shared/learning";
 import { findSiteForHost } from "../shared/sites";
 import { recordStats } from "../shared/stats";
 import { loadAliases, saveAliases } from "./aliasStore";
@@ -55,6 +56,7 @@ if (site) {
       panel?.refresh();
     },
     onStats: (delta) => void recordStats(delta),
+    onCorrections: (corrections) => void recordCorrections(corrections),
   });
 
   void loadAliases(host).then((stored) => {

@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS, type Settings } from "../shared/settings";
 import type { SupportedSite } from "../shared/sites";
 import { existingRoot, HOST_ID } from "./dialog";
 import { readEditorText } from "./editor";
-import { installInterceptor, type AiAnalyzer } from "./interceptor";
+import { installInterceptor, type AiAnalyzer, type InterceptorOptions } from "./interceptor";
 
 const site: SupportedSite = {
   id: "test",
@@ -20,7 +20,11 @@ let settings: Settings;
 let sent: string[];
 let dispose: () => void;
 
-function setup(editorHtml = `<div id="editor" contenteditable="true"></div>`, analyzeAi?: AiAnalyzer) {
+function setup(
+  editorHtml = `<div id="editor" contenteditable="true"></div>`,
+  analyzeAi?: AiAnalyzer,
+  extra: Partial<InterceptorOptions> = {}
+) {
   document.body.innerHTML = `<form>${editorHtml}<button id="send" type="button">Envoyer</button></form>`;
   const editor = document.getElementById("editor") as HTMLElement;
 
@@ -37,6 +41,7 @@ function setup(editorHtml = `<div id="editor" contenteditable="true"></div>`, an
     sendTimeoutMs: 50,
     aiTimeoutMs: 500,
     analyzeAi,
+    ...extra,
   });
   return editor;
 }
@@ -268,6 +273,45 @@ describe("intercepteur — règles", () => {
     expect(shadow()!.activeElement?.textContent).toBe("Remplacer et envoyer");
     dialog.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true }));
     expect(shadow()!.activeElement?.textContent).toBe("Annuler");
+  });
+});
+
+describe("intercepteur — apprentissage", () => {
+  it("signale les données décochées après un envoi protégé", async () => {
+    const onCorrections = vi.fn();
+    const editor = setup(undefined, undefined, { onCorrections });
+    type(editor, "Appelle Jeanne Martin au 06 12 34 56 78 demain.");
+    clickSend();
+
+    const box = await waitFor(() => checkbox("Jeanne Martin"));
+    box.checked = false;
+    box.dispatchEvent(new Event("change"));
+    await confirm();
+
+    expect(sent).toEqual(["Appelle Jeanne Martin au [TELEPHONE_1] demain."]);
+    expect(onCorrections).toHaveBeenCalledWith([{ kind: "unmasked", type: "PERSON", value: "Jeanne Martin" }]);
+  });
+
+  it("ne signale rien quand la revue est acceptée telle quelle", async () => {
+    const onCorrections = vi.fn();
+    const editor = setup(undefined, undefined, { onCorrections });
+    type(editor, "Appelle Jeanne Martin au 06 12 34 56 78 demain.");
+    clickSend();
+    await confirm();
+    expect(onCorrections).not.toHaveBeenCalled();
+  });
+
+  it("propose décochée une valeur apprise, avec son motif, et l'envoie telle quelle", async () => {
+    settings.allowTerms = ["Jeanne Martin"];
+    const editor = setup();
+    type(editor, "Appelle Jeanne Martin au 06 12 34 56 78 demain.");
+    clickSend();
+
+    const box = await waitFor(() => checkbox("Jeanne Martin"));
+    expect(box.checked).toBe(false);
+    expect(box.closest("label")?.textContent).toContain("appris de vos corrections");
+    await confirm();
+    expect(sent).toEqual(["Appelle Jeanne Martin au [TELEPHONE_1] demain."]);
   });
 });
 

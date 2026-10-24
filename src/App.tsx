@@ -11,6 +11,7 @@ import { expandOccurrences } from "./engine/protect";
 import { loadSettings, saveSettings, type Settings, type Theme } from "./shared/settings";
 import { applyDocumentTheme } from "./theme";
 import { findSiteForUrl, SUPPORTED_SITES, type SupportedSite } from "./shared/sites";
+import { resetLearning } from "./shared/learning";
 import { EMPTY_STATS, loadStats, resetStats, type Stats } from "./shared/stats";
 
 const VERSION = "1.1.0";
@@ -366,6 +367,41 @@ function ProtectionTab(props: {
 
       <div className="card strict-card">
         <div>
+          <h2>Apprentissage</h2>
+          <p>
+            Une donnée décochée deux fois dans la revue sera ensuite proposée décochée. Une donnée cochée deux fois devient un terme
+            confidentiel. Les secrets ne sont jamais concernés. Tout reste sur cet appareil.
+          </p>
+        </div>
+        <Switch checked={settings.learning} label="Apprendre de mes corrections" onChange={(learning) => update({ learning })} />
+      </div>
+      {settings.allowTerms.length > 0 && (
+        <>
+          <p className="section-description">
+            Proposées décochées{settings.privacyLevel === "maximum" ? " (ignoré en niveau maximal)" : ""} :
+          </p>
+          <ul className="term-list">
+            {settings.allowTerms.map((term) => (
+              <li key={term}>
+                <span>{term}</span>
+                <button
+                  type="button"
+                  aria-label={`Oublier ${term}`}
+                  onClick={() => update({ allowTerms: settings.allowTerms.filter((item) => item !== term) })}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button type="button" className="link-button" onClick={() => void resetLearning(settings).then((next) => update(next))}>
+            Tout oublier
+          </button>
+        </>
+      )}
+
+      <div className="card strict-card">
+        <div>
           <h2>Mode strict</h2>
           <p>Bloque l'envoi si la protection ne peut pas être vérifiée. Les données repérées par les règles ne peuvent pas être décochées.</p>
         </div>
@@ -552,7 +588,12 @@ function TestTab({ settings }: { settings: Settings }) {
 
     const analysis = analyzeMessage(
       sample,
-      { categories: settings.categories, customTerms: settings.customTerms, level: settings.privacyLevel },
+      {
+        categories: settings.categories,
+        customTerms: settings.customTerms,
+        level: settings.privacyLevel,
+        allowTerms: settings.learning ? settings.allowTerms : [],
+      },
       findings
     );
     const entities = expandOccurrences(sample, analysis.entities);
