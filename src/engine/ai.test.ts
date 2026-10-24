@@ -237,6 +237,21 @@ describe("combineDetections", () => {
     expect(combineDetections(text, ALL, findings({ verdict })).map((e) => e.value)).toContain(value);
   });
 
+  it("ne masque pas un extrait dont le seul fait précis est un paramètre de la tâche", () => {
+    const text = "Rédige une annonce pour louer ma remorque à 35 € la journée, dispo samedi vers 9h.";
+    const at = (value: string) => ({ value, start: text.indexOf(value), end: text.indexOf(value) + value.length });
+    const excerpts = [at("remorque à 35 €"), at("dispo samedi vers 9h")];
+    expect(combineDetections(text, ALL, findings({ verdict: { risk: "medium", reason: "", excerpts } }))).toEqual([]);
+  });
+
+  it("ne masque pas du code cité par le contexte, mais toujours le secret qu'il contient", () => {
+    const text = 'Pourquoi ça plante ?\nresp = client.post(API_URL, json={"token": "Zq81!mLp#4vR"})\nprint(resp.json())';
+    const at = (value: string) => ({ value, start: text.indexOf(value), end: text.indexOf(value) + value.length });
+    const excerpts = [at("resp = client.post(API_URL"), at("print(resp.json())")];
+    const values = combineDetections(text, ALL, findings({ verdict: { risk: "high", reason: "", excerpts } })).map((e) => e.value);
+    expect(values).toEqual(["Zq81!mLp#4vR"]);
+  });
+
   it("laisse gardé ce que les règles ont choisi de garder, malgré le NER et le contexte", () => {
     const text = "Raconte la vie de Marie Curie, puis relance le colis de la commande n° 77120934 arrivé abîmé.";
     const at = (value: string) => ({ value, start: text.indexOf(value), end: text.indexOf(value) + value.length });

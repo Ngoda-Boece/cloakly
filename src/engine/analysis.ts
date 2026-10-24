@@ -179,7 +179,9 @@ const CONFIDENTIAL_TOPICS = [
  * demande incompréhensible.
  */
 function carriesSpecificFact(excerpt: SensitiveEntity, text: string): boolean {
-  if (/\d/.test(excerpt.value) || /\[(?:at|point|dot)\]|\p{L}[.@_]\p{L}/iu.test(excerpt.value)) return true;
+  // Du code cité n'est jamais un fait confidentiel : ses secrets relèvent des règles.
+  if (CODE_SYNTAX.test(excerpt.value)) return false;
+  if (/\d/.test(excerpt.value) || /\[(?:at|point|dot)\]|@|\p{Ll}{2,}\.\p{Ll}{2,}(?![\p{L}(])/iu.test(excerpt.value)) return true;
   const folded = ` ${fold(excerpt.value).replace(/[^\p{L}\s']+/gu, " ")} `;
   if (CONFIDENTIAL_TOPICS.some((topic) => folded.includes(` ${topic}`))) return true;
   for (const match of excerpt.value.matchAll(/\p{L}[\p{L}\p{M}'’-]*/gu)) {
@@ -191,6 +193,24 @@ function carriesSpecificFact(excerpt: SensitiveEntity, text: string): boolean {
     if (/^\p{Lu}/u.test(word) && !sentenceStart && !isCommonCapitalized(word) && !/^\p{Lu}{2,4}$/u.test(word)) return true;
   }
   return false;
+}
+
+/** Appel de fonction, accolades, affectation : « requests.get(URL », « print(r) », « x = 1; ». */
+const CODE_SYNTAX = /[\p{L}\d_]\(|[{};]|[\p{L}\d_\])]\s*=[^=]/u;
+
+/**
+ * L'extrait vu sans ce dont la tâche a besoin (montant, date, heure, référence
+ * gardée par les règles) : « vélo à 104,22 € » se réduit à « vélo à », qui ne
+ * révèle rien. Le chiffre d'une tâche n'est pas, à lui seul, un fait confidentiel.
+ */
+function withoutUsefulValues(excerpt: SensitiveEntity, task: TaskProfile, kept: readonly SensitiveEntity[]): SensitiveEntity {
+  let value = excerpt.value;
+  for (const span of [...task.parameters, ...kept]) {
+    const from = Math.max(span.start, excerpt.start) - excerpt.start;
+    const to = Math.min(span.end, excerpt.end) - excerpt.start;
+    if (from < to) value = value.slice(0, from) + " ".repeat(to - from) + value.slice(to);
+  }
+  return { ...excerpt, value };
 }
 
 export const LEARNED_REASON = "appris de vos corrections";
@@ -265,6 +285,7 @@ function analyzeWithoutLearning(
   const entities = mergeEntities([
     ...base,
     ...excerpts
+      .filter((excerpt) => carriesSpecificFact(withoutUsefulValues(excerpt, task, keptByRules), text))
       .flatMap((excerpt) => subtractCovered(excerpt, [...base, ...keptByRules]))
       .flatMap((excerpt) => withoutTaskParameters(excerpt, task))
       .filter((excerpt) => carriesSpecificFact(excerpt, text)),

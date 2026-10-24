@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-24T21:12:01.347Z",
+  "date": "2026-10-24T21:14:14.446Z",
   "level": "balanced",
   "seeds": [
     1,
@@ -18,7 +18,7 @@
       "parameterPreservation": 1,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 8.99
+      "p95Ms": 5.21
     },
     "holdout": {
       "cases": 26,
@@ -30,7 +30,7 @@
       "parameterPreservation": 0.975609756097561,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 4.03
+      "p95Ms": 5.73
     },
     "generated:1": {
       "cases": 96,
@@ -42,7 +42,7 @@
       "parameterPreservation": 0.9851851851851852,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 5.46
+      "p95Ms": 4.14
     },
     "generated:2": {
       "cases": 96,
@@ -54,7 +54,7 @@
       "parameterPreservation": 1,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 4
+      "p95Ms": 7.31
     },
     "generated:3": {
       "cases": 96,
@@ -66,7 +66,7 @@
       "parameterPreservation": 0.9925925925925926,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 4.57
+      "p95Ms": 7.17
     },
     "generated:20261024": {
       "cases": 96,
@@ -78,7 +78,7 @@
       "parameterPreservation": 1,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 5.53
+      "p95Ms": 6.55
     }
   }
 }
