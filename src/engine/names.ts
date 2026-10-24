@@ -207,6 +207,9 @@ function isSentenceStart(text: string, start: number): boolean {
   return before === "" || /[.!?:\n"«“(\-•*]$/u.test(before);
 }
 
+/** Nom en capitales qui précède immédiatement un prénom (cherché à la fin du texte qui le précède). */
+const PRECEDING_CAPS = new RegExp(`(?<![\\p{L}\\p{N}])(${CAPS_WORD})[ \\t]+$`, "u");
+
 /** Personnes repérées par des indices, puis par les prénoms connus. */
 export function detectPersons(text: string, options: { strictPublicFigures?: boolean } = {}): Candidate[] {
   const found: Candidate[] = [];
@@ -230,9 +233,17 @@ export function detectPersons(text: string, options: { strictPublicFigures?: boo
   for (const match of text.matchAll(lexicon)) {
     const first = match[1];
     if (!FIRST_NAMES.has(fold(first).split(/[-'’]/)[0])) continue;
-    const surname = match[3] && !NOT_NAMES.has(fold(match[3])) ? match[3] : null;
-    const start = match.index;
-    const full = surname ? first + match[2] : first;
+    let surname = match[3] && !NOT_NAMES.has(fold(match[3])) ? match[3] : null;
+    let start = match.index;
+    let full = surname ? first + match[2] : first;
+    // Forme administrative « NOM Prénom » : « SCHMITT Rachid ». Au moins 4 lettres,
+    // pour ne pas prendre un sigle (« DRH Sophie », « CEO Marc ») pour un nom.
+    const before = PRECEDING_CAPS.exec(text.slice(0, start));
+    if (!surname && before && before[1].replace(/[-'’]/g, "").length >= 4 && !NOT_NAMES.has(fold(before[1]))) {
+      surname = before[1];
+      start = before.index;
+      full = text.slice(start, match.index + first.length);
+    }
     if (found.some((other) => start < other.end && other.start < start + full.length)) continue;
 
     // « la vie de Victor Hugo » : une personnalité publique, utile telle quelle.
@@ -284,6 +295,8 @@ function withOtherOccurrences(text: string, found: Candidate[]): Candidate[] {
       const last = tokens.at(-1)!;
       if (last.length >= 3 && !NOT_NAMES.has(fold(last))) forms.set(last, person);
       if (FIRST_NAMES.has(fold(tokens[0]))) forms.set(tokens[0], person);
+      // « SCHMITT Rachid … SCHMITT a validé » : le nom en capitales placé en tête.
+      else if (/^\p{Lu}{4,}$/u.test(tokens[0]) && !NOT_NAMES.has(fold(tokens[0]))) forms.set(tokens[0], person);
     }
   }
 

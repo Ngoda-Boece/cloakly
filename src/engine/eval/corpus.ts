@@ -46,6 +46,22 @@ export const CORPUS: CorpusCase[] = [
     intent: ["rédiger une lettre de démission"],
   },
   {
+    id: "identity-caps-surname-first",
+    category: "identité",
+    text: "Le dossier de mutation est suivi par LEFEBVRE Camille, prépare un message de relance pour la DRH.",
+    mask: [direct("LEFEBVRE Camille"), direct("LEFEBVRE")],
+    keep: ["DRH"],
+    intent: ["prépare un message de relance"],
+  },
+  {
+    id: "identity-caps-surname-list",
+    category: "identité",
+    text: "Liste des inscrits : GARNIER Hugo, BLANCHARD Manon. Fais un tableau avec une colonne pour le paiement.",
+    mask: [direct("GARNIER Hugo"), direct("GARNIER"), direct("BLANCHARD Manon"), direct("BLANCHARD")],
+    keep: [],
+    intent: ["Fais un tableau"],
+  },
+  {
     id: "identity-honorific",
     category: "identité",
     text: "Écris un mail à Mme Durand pour reporter notre réunion de mardi 14h à jeudi 10h.",

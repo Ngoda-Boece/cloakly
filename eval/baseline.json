@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-24T20:32:32.896Z",
+  "date": "2026-10-24T20:34:25.975Z",
   "level": "balanced",
   "seeds": [
     1,
@@ -9,7 +9,7 @@
   ],
   "metrics": {
     "reference": {
-      "cases": 76,
+      "cases": 78,
       "leaks": 0,
       "secretsTransmitted": 0,
       "recall": 1,
@@ -18,7 +18,7 @@
       "parameterPreservation": 1,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 10.76
+      "p95Ms": 6.68
     },
     "holdout": {
       "cases": 26,
@@ -30,7 +30,7 @@
       "parameterPreservation": 0.975609756097561,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 4.41
+      "p95Ms": 4.45
     },
     "generated:1": {
       "cases": 96,
@@ -42,7 +42,7 @@
       "parameterPreservation": 0.9851851851851852,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 4.25
+      "p95Ms": 9.89
     },
     "generated:2": {
       "cases": 96,
@@ -54,7 +54,7 @@
       "parameterPreservation": 1,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 5.17
+      "p95Ms": 7.22
     },
     "generated:3": {
       "cases": 96,
@@ -66,7 +66,7 @@
       "parameterPreservation": 0.9925925925925926,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 3.93
+      "p95Ms": 4.52
     },
     "generated:20261024": {
       "cases": 96,
@@ -78,7 +78,7 @@
       "parameterPreservation": 1,
       "intentPreservation": 1,
       "incomprehensibleRate": 0,
-      "p95Ms": 4.15
+      "p95Ms": 4.29
     }
   }
 }

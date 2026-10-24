@@ -59,6 +59,7 @@ describe("noms de personnes (sans modèle)", () => {
     ["Mon fils Lucas a de la fièvre.", "Lucas"],
     ["Nom : Karim Benali\nPoste : développeur", "Karim Benali"],
     ["Peux-tu corriger ?\nBonjour Sophie,\nmerci.\nCordialement,\nLaurent Chevalier", "Laurent Chevalier"],
+    ["Le projet est piloté par MOREAU Julie depuis mars.", "MOREAU Julie"],
   ])("détecte la personne dans « %s »", (text, name) => {
     expect(masked(text)).toContain(`PERSON:${name}`);
     expect(run(text).sanitized).not.toContain(name);
@@ -67,6 +68,16 @@ describe("noms de personnes (sans modèle)", () => {
   it("ne prend pas pour des personnes les mots capitalisés ordinaires", () => {
     expect(masked("Hello World, bonjour Claude ! interface User { name: String }")).toEqual([]);
     expect(masked("Explique-moi la différence entre TCP et UDP.")).toEqual([]);
+  });
+
+  it("ne prend pas un sigle placé avant un prénom pour un nom de famille", () => {
+    expect(masked("Notre DRH Sophie a validé, le CEO Marc aussi.")).toEqual(["PERSON:Sophie", "PERSON:Marc"]);
+  });
+
+  it("masque aussi le nom en capitales quand il réapparaît seul", () => {
+    expect(run("MOREAU Julie a signé, MOREAU rappellera lundi.").sanitized).toBe(
+      "[PERSONNE_1] a signé, [PERSONNE_1] rappellera lundi."
+    );
   });
 
   it("garde une personnalité publique dans une question de culture, la masque en niveau maximal", () => {
