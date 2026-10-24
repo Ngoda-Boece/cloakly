@@ -161,6 +161,8 @@ describe("secrets et authentification", () => {
     ["STRIPE_KEY=rk_live_abcdefghijklmnop12", "rk_live_abcdefghijklmnop12"],
     ["Mon mot de passe Wi-Fi est Tr0ub4dor&3", "Tr0ub4dor&3"],
     ["Le code PIN de ma carte est 4821", "4821"],
+    ["Le serveur a pour mot de passe Lune#81q.", "Lune#81q"],
+    ["I connect with the password Rivet77! daily", "Rivet77!"],
     ["hf_abcdefghijklmnopqrstuvwxyz0123456789", "hf_abcdefghijklmnopqrstuvwxyz0123456789"],
   ])("ne laisse jamais passer « %s »", (text, value) => {
     const { sanitized, protection } = run(text);
@@ -176,6 +178,8 @@ describe("secrets et authentification", () => {
     "token count is 1500",
     "Le token JWT expire après 3600 secondes.",
     "interface Login { password: string }",
+    "Je me connecte avec le mot de passe habituel depuis hier.",
+    "Le compte a pour mot de passe celui par défaut.",
   ])("ne voit pas de secret dans « %s »", (text) => {
     expect(detectSecrets(text)).toEqual([]);
   });

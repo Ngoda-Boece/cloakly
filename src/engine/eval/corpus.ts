@@ -160,6 +160,22 @@ export const CORPUS: CorpusCase[] = [
     intent: ["comment le changer"],
   },
   {
+    id: "secret-has-password",
+    category: "secrets",
+    text: "Le routeur du bureau a pour mot de passe Brume!73k depuis l'installation, comment activer le WPA3 ?",
+    mask: [secret("Brume!73k")],
+    keep: ["WPA3"],
+    intent: ["comment activer le WPA3"],
+  },
+  {
+    id: "secret-with-password-en",
+    category: "secrets",
+    text: "I log into the NAS with the password Kayak2024$ every morning, how do I set up SSH keys instead?",
+    mask: [secret("Kayak2024$")],
+    keep: ["SSH"],
+    intent: ["how do I set up SSH keys instead"],
+  },
+  {
     id: "secret-connection-string",
     category: "secrets",
     text: "DATABASE_URL=postgres://admin:S3cr3tPass@db.exemple.com:5432/prod ne se connecte pas, pourquoi ?",

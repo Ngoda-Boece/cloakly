@@ -339,6 +339,21 @@ const SECRET_PATTERNS: Pattern[] = [
     },
   },
   {
+    // Libellé introduit par un verbe, sans séparateur : « a pour mot de passe Xy#12 »,
+    // « avec le mot de passe … », « with the password … ». Sans « : » ni « est »,
+    // la valeur doit ressembler à un secret (« avec le mot de passe oublié » ne compte pas).
+    type: "PASSWORD",
+    regex: new RegExp(
+      String.raw`(?<![\p{L}\p{N}_])(?:a|ont|avait|avec|ayant|utilise|using|uses?|with|has|had)\s+` +
+        String.raw`(?:(?:pour|comme|le|la|son|sa|leur|the|its|their|as|a)\s+)?(${SECRET_KEYWORD})\s+` +
+        // La ponctuation finale (« …Xy#12. ») ne fait pas partie du secret.
+        String.raw`([^\s"'` + "`" + String.raw`,;)}\]]{3,}?[^\s"'` + "`" + String.raw`,;)}\].!?:])(?=[.!?:]*(?:\s|$|[,;)]))`,
+      "giu"
+    ),
+    group: 2,
+    classify: (value, _context, match) => (isSecretLike(value) ? classifySecret(value, "", match[1] ?? "") : null),
+  },
+  {
     // Identifiants dans une URL : scheme://user:motdepasse@hôte
     type: "PASSWORD",
     regex: /\b[a-z][a-z0-9+.-]*:\/\/[^\s:/@]+:([^\s@/]+)@/gi,
