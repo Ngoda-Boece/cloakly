@@ -152,7 +152,8 @@ export function evaluate(corpus: readonly CorpusCase[], engine: Engine): Metrics
     recall,
     falsePositiveRate: 1 - precision,
     falseNegativeRate: 1 - recall,
-    cleanPromptsAltered: ratio(cleanAltered, cleanCases),
+    // Sans message propre dans le jeu, aucun n'a pu être modifié : 0 et non 100 %.
+    cleanPromptsAltered: cleanCases === 0 ? 0 : cleanAltered / cleanCases,
     intentPreservation: ratio(intentKept, corpus.length),
     parameterPreservation: ratio(keepPreserved, keepTotal),
     incomprehensibleRate: ratio(results.filter((result) => result.incomprehensible).length, corpus.length),

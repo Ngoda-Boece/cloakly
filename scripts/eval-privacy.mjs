@@ -4,6 +4,7 @@
 //         npm run eval:privacy -- --engine <dossier>  (autre version du moteur, pour comparer)
 //         npm run eval:privacy -- --set holdout      (jeu de contrôle, jamais utilisé pour régler le moteur)
 //         npm run eval:privacy -- --set generated --seed 42 --count 99  (cas synthétiques inédits)
+//         npm run eval:privacy -- --set ladder --seed 7          (25 questions de difficulté croissante)
 //         npm run eval:privacy -- --failures tmp/failures.json        (écarts groupés par catégorie)
 //         npm run eval:privacy -- --json             (sortie machine)
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -12,6 +13,7 @@ import { pathToFileURL } from "node:url";
 import { CORPUS } from "../src/engine/eval/corpus.ts";
 import { generateCases } from "../src/engine/eval/generator.ts";
 import { HOLDOUT } from "../src/engine/eval/holdout.ts";
+import { generateLadder } from "../src/engine/eval/ladder.ts";
 import { evaluate, formatReport } from "../src/engine/eval/metrics.ts";
 
 const args = process.argv.slice(2);
@@ -29,11 +31,12 @@ const SETS = {
   reference: () => CORPUS,
   holdout: () => HOLDOUT,
   generated: () => generateCases(seed, count),
+  ladder: () => generateLadder(seed),
   all: () => [...CORPUS, ...HOLDOUT],
 };
 if (!SETS[set]) throw new Error(`Jeu inconnu : ${set} (${Object.keys(SETS).join(", ")})`);
 const cases = SETS[set]();
-const setLabel = set === "generated" ? `generated (graine ${seed})` : set;
+const setLabel = set === "generated" || set === "ladder" ? `${set} (graine ${seed})` : set;
 const load = (file) => import(pathToFileURL(resolve(engineDir, file)).href);
 
 const analysis = await load("analysis.ts");

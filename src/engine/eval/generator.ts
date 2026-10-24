@@ -9,7 +9,7 @@ import type { CorpusCase, RiskGroup } from "./corpus";
  * sont tirés au hasard).
  */
 
-type Rng = () => number;
+export type Rng = () => number;
 type Draft = Omit<CorpusCase, "id">;
 
 const direct = (value: string) => ({ value, group: "direct" as RiskGroup });
@@ -18,7 +18,7 @@ const secret = (value: string) => ({ value, group: "secret" as RiskGroup });
 const business = (value: string) => ({ value, group: "business" as RiskGroup });
 
 /** Mulberry32 : petit générateur pseudo-aléatoire reproductible. */
-function createRng(seed: number): Rng {
+export function createRng(seed: number): Rng {
   let state = seed >>> 0;
   return () => {
     state = (state + 0x6d2b79f5) >>> 0;
@@ -29,26 +29,26 @@ function createRng(seed: number): Rng {
   };
 }
 
-const int = (rng: Rng, min: number, max: number) => min + Math.floor(rng() * (max - min + 1));
-const pick = <T>(rng: Rng, items: readonly T[]): T => items[Math.floor(rng() * items.length)];
-const digits = (rng: Rng, count: number) => Array.from({ length: count }, () => int(rng, 0, 9)).join("");
-const pad = (value: number, size = 2) => String(value).padStart(size, "0");
+export const int = (rng: Rng, min: number, max: number) => min + Math.floor(rng() * (max - min + 1));
+export const pick = <T>(rng: Rng, items: readonly T[]): T => items[Math.floor(rng() * items.length)];
+export const digits = (rng: Rng, count: number) => Array.from({ length: count }, () => int(rng, 0, 9)).join("");
+export const pad = (value: number, size = 2) => String(value).padStart(size, "0");
 
-function pickDistinct<T>(rng: Rng, items: readonly T[], count: number): T[] {
+export function pickDistinct<T>(rng: Rng, items: readonly T[], count: number): T[] {
   const pool = [...items];
   const chosen: T[] = [];
   while (chosen.length < count && pool.length) chosen.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
   return chosen;
 }
 
-const FIRST_FEMALE = ["Élodie", "Inès", "Margaux", "Solène", "Clémence", "Aurélie", "Nadia", "Léa", "Anaïs", "Fatou", "Maëlle", "Justine"];
-const FIRST_MALE = ["Mathieu", "Bastien", "Yannick", "Théo", "Rachid", "Grégoire", "Florian", "Sébastien", "Damien", "Quentin", "Mehdi", "Romain"];
-const FIRST = [...FIRST_FEMALE, ...FIRST_MALE];
-const LAST = ["Rousseau", "Fournier", "Gauthier", "Perrin", "Morel", "Leclerc", "Barbier", "Arnaud", "Renaud", "Schmitt", "Vidal", "Caron", "Picard", "Lemaire", "Brunet", "Hamon", "Blanchard", "Ferreira", "Nguyen", "Diallo"];
-const FIRST_EN = ["Olivia", "Ethan", "Megan", "Ryan", "Hannah", "Tyler", "Grace", "Connor", "Abigail", "Logan"];
-const LAST_EN = ["Mitchell", "Turner", "Parker", "Edwards", "Stewart", "Morris", "Reed", "Bailey", "Hughes", "Foster"];
-const HISTORICAL = ["Louis Pasteur", "Jules Verne", "Simone Veil", "Albert Einstein", "Jean Moulin", "Coco Chanel", "Isaac Newton", "Ada Lovelace", "Gustave Eiffel", "Olympe de Gouges"];
-const CITIES = [
+export const FIRST_FEMALE = ["Élodie", "Inès", "Margaux", "Solène", "Clémence", "Aurélie", "Nadia", "Léa", "Anaïs", "Fatou", "Maëlle", "Justine"];
+export const FIRST_MALE = ["Mathieu", "Bastien", "Yannick", "Théo", "Rachid", "Grégoire", "Florian", "Sébastien", "Damien", "Quentin", "Mehdi", "Romain"];
+export const FIRST = [...FIRST_FEMALE, ...FIRST_MALE];
+export const LAST = ["Rousseau", "Fournier", "Gauthier", "Perrin", "Morel", "Leclerc", "Barbier", "Arnaud", "Renaud", "Schmitt", "Vidal", "Caron", "Picard", "Lemaire", "Brunet", "Hamon", "Blanchard", "Ferreira", "Nguyen", "Diallo"];
+export const FIRST_EN = ["Olivia", "Ethan", "Megan", "Ryan", "Hannah", "Tyler", "Grace", "Connor", "Abigail", "Logan"];
+export const LAST_EN = ["Mitchell", "Turner", "Parker", "Edwards", "Stewart", "Morris", "Reed", "Bailey", "Hughes", "Foster"];
+export const HISTORICAL = ["Louis Pasteur", "Jules Verne", "Simone Veil", "Albert Einstein", "Jean Moulin", "Coco Chanel", "Isaac Newton", "Ada Lovelace", "Gustave Eiffel", "Olympe de Gouges"];
+export const CITIES = [
   ["75014", "Paris"],
   ["69003", "Lyon"],
   ["31000", "Toulouse"],
@@ -57,28 +57,28 @@ const CITIES = [
   ["59000", "Lille"],
   ["67000", "Strasbourg"],
 ] as const;
-const STREETS = ["rue des Acacias", "avenue du Moulin", "boulevard de la Gare", "impasse des Tilleuls", "allée des Cerisiers", "rue du Château", "chemin des Prés"];
-const DAYS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi"];
-const DAYS_EN = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "septembre", "octobre", "novembre", "décembre"];
-const DOMAINS = ["exemple.fr", "example.com", "societe-test.fr", "mail-test.org"];
-const ALNUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+export const STREETS = ["rue des Acacias", "avenue du Moulin", "boulevard de la Gare", "impasse des Tilleuls", "allée des Cerisiers", "rue du Château", "chemin des Prés"];
+export const DAYS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi"];
+export const DAYS_EN = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+export const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "septembre", "octobre", "novembre", "décembre"];
+export const DOMAINS = ["exemple.fr", "example.com", "societe-test.fr", "mail-test.org"];
+export const ALNUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const UPPER_DIGITS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
-const chars = (rng: Rng, alphabet: string, count: number) =>
+export const chars = (rng: Rng, alphabet: string, count: number) =>
   Array.from({ length: count }, () => alphabet[int(rng, 0, alphabet.length - 1)]).join("");
-const slug = (value: string) => value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z]+/g, "-");
-const email = (rng: Rng, first: string, last: string) => `${slug(first)}.${slug(last)}@${pick(rng, DOMAINS)}`;
-const hour = (rng: Rng) => pick(rng, ["9h", "10h30", "11h", "14h", "15h30", "16h45", "17h"]);
-const date = (rng: Rng) => `${int(rng, 2, 28)} ${pick(rng, MONTHS)}`;
+export const slug = (value: string) => value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z]+/g, "-");
+export const email = (rng: Rng, first: string, last: string) => `${slug(first)}.${slug(last)}@${pick(rng, DOMAINS)}`;
+export const hour = (rng: Rng) => pick(rng, ["9h", "10h30", "11h", "14h", "15h30", "16h45", "17h"]);
+export const date = (rng: Rng) => `${int(rng, 2, 28)} ${pick(rng, MONTHS)}`;
 
-function amount(rng: Rng, min: number, max: number): string {
+export function amount(rng: Rng, min: number, max: number): string {
   const value = int(rng, min, max);
   const euros = value >= 1000 ? `${Math.floor(value / 1000)} ${pad(value % 1000, 3)}` : String(value);
   return rng() < 0.4 ? `${euros},${pad(int(rng, 1, 99))} €` : `${euros} €`;
 }
 
-function frenchPhone(rng: Rng): string {
+export function frenchPhone(rng: Rng): string {
   const pairs = [pick(rng, ["06", "07"]), ...Array.from({ length: 4 }, () => digits(rng, 2))];
   const style = int(rng, 0, 2);
   if (style === 0) return pairs.join(" ");
@@ -86,9 +86,9 @@ function frenchPhone(rng: Rng): string {
   return `+33 ${pairs[0][1]} ${pairs.slice(1).join(" ")}`;
 }
 
-const usPhone = (rng: Rng) => `+1 ${pick(rng, ["415", "212", "617"])} 555 01${digits(rng, 2)}`;
+export const usPhone = (rng: Rng) => `+1 ${pick(rng, ["415", "212", "617"])} 555 01${digits(rng, 2)}`;
 
-function iban(rng: Rng): string {
+export function iban(rng: Rng): string {
   const bban = digits(rng, 23);
   // Lettres converties (F = 15, R = 27), clé « 00 » provisoire en fin, puis modulo 97.
   const check = pad(98 - Number(BigInt(`${bban}152700`) % 97n));
@@ -96,7 +96,7 @@ function iban(rng: Rng): string {
   return rng() < 0.5 ? value : value.replace(/(.{4})/g, "$1 ").trim();
 }
 
-function card(rng: Rng): string {
+export function card(rng: Rng): string {
   const body = rng() < 0.5 ? "4" : `5${int(rng, 1, 5)}`;
   let partial = body + digits(rng, 15 - body.length);
   // Chiffre de contrôle de Luhn.
@@ -110,14 +110,14 @@ function card(rng: Rng): string {
   return partial.replace(/(.{4})/g, "$1 ").trim();
 }
 
-function nir(rng: Rng): string {
+export function nir(rng: Rng): string {
   const parts = [String(int(rng, 1, 2)), pad(int(rng, 50, 99)), pad(int(rng, 1, 12)), pad(pick(rng, [13, 33, 44, 59, 69, 75, 92])), digits(rng, 3), digits(rng, 3)];
   const key = pad(97 - Number(BigInt(parts.join("")) % 97n));
   return [...parts, key].join(" ");
 }
 
-const birthDate = (rng: Rng) => `${pad(int(rng, 1, 28))}/${pad(int(rng, 1, 12))}/${int(rng, 1950, 2004)}`;
-const password = (rng: Rng) => `${pick(rng, ["Soleil", "Montagne", "Bretagne", "Kiwi", "Falcon"])}${pick(rng, ["!", "#", "$", "&"])}${int(rng, 10, 99)}${pick(rng, ["x", "Z", "q"])}`;
+export const birthDate = (rng: Rng) => `${pad(int(rng, 1, 28))}/${pad(int(rng, 1, 12))}/${int(rng, 1950, 2004)}`;
+export const password = (rng: Rng) => `${pick(rng, ["Soleil", "Montagne", "Bretagne", "Kiwi", "Falcon"])}${pick(rng, ["!", "#", "$", "&"])}${int(rng, 10, 99)}${pick(rng, ["x", "Z", "q"])}`;
 
 /** Gabarits : chacun reflète une règle déjà fixée par le corpus de référence. */
 const TEMPLATES: Record<string, (rng: Rng) => Draft> = {
